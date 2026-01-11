@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="en">
+<html lang="es">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Digital Exclusion Risk in the EU</title>
+  <title>Riesgo de exclusión digital en la UE</title>
   <link rel="stylesheet" href="style.css" />
   <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
@@ -11,25 +11,27 @@
 <body>
   <header class="hero">
     <div class="container">
-      <h1>Digital Exclusion Risk in the EU</h1>
+      <h1>Riesgo de exclusión digital en la UE</h1>
       <p class="subtitle">
-        Country-level scrollytelling combining web accessibility barriers (WebAIM),
-        digital capacity (DESI), and sight-loss burden by gender (Vision Atlas).
+        Visualización a nivel país (UE-27) combinando barreras de accesibilidad web (WebAIM),
+        contexto digital (DESI) y carga de pérdida de visión por género (Vision Atlas).
       </p>
 
-      <div class="controls" aria-label="Controls">
-        <label for="metric">Metric</label>
+      <div class="controls" aria-label="Controles">
+        <label for="metric">Métrica</label>
         <select id="metric">
-          <option value="derviw" selected>DERVIW (Risk Index)</option>
-          <option value="idfdv">IDFDV (Inclusion Index)</option>
-          <option value="wass">WASS (Web Accessibility Severity)</option>
+          <option value="derviw" selected>DERVIW (Índice de riesgo)</option>
+          <option value="idfdv">IDFDV (Índice de inclusión)</option>
+          <option value="wass">WASS (Severidad de barreras web)</option>
         </select>
       </div>
 
-      <div class="kpis" id="kpis" aria-label="Key indicators"></div>
+      <div id="metricHelp" class="metric-help" aria-label="Ayuda de lectura"></div>
+
+      <div class="kpis" id="kpis" aria-label="Indicadores clave"></div>
 
       <p class="note">
-        Hover a country to view details and cross-highlight across visualizations.
+        Pasa el ratón por un país para ver detalles y resaltado cruzado en todas las vistas.
       </p>
     </div>
   </header>
@@ -37,52 +39,53 @@
   <main class="container">
 
     <section class="panel">
-      <h2>1) Map: Where is the selected metric concentrated?</h2>
+      <h2>1) Mapa: ¿Dónde se concentra la métrica seleccionada?</h2>
       <p class="desc">
-        This map shows the selected metric across the EU-27. Use it to spot spatial patterns quickly.
+        El mapa muestra la métrica seleccionada en la UE-27. Úsalo para identificar patrones espaciales de forma rápida.
       </p>
       <div id="map" class="viz"></div>
-      <div id="legend" class="legend" aria-label="Legend"></div>
+      <div id="legend" class="legend" aria-label="Leyenda"></div>
     </section>
 
     <section class="panel">
-      <h2>2) Ranking: Who leads and who lags?</h2>
+      <h2>2) Ranking: ¿Quién lidera y quién se queda atrás?</h2>
       <p class="desc">
-        Countries sorted by the selected metric. This helps compare extremes and identify outliers.
+        Países ordenados por la métrica seleccionada (de mayor a menor). Facilita comparar extremos y detectar outliers.
       </p>
       <div id="ranking" class="viz viz-short"></div>
     </section>
 
     <section class="panel">
-      <h2>3) Trade-offs: Web barriers vs digital context</h2>
+      <h2>3) Compensaciones: barreras web vs contexto digital</h2>
       <p class="desc">
-        Scatterplot of WASS (higher = more barriers) vs Digital context (higher = more capacity).
-        Bubble size reflects the female sight-loss burden.
+        Gráfico de dispersión: WASS (más alto = más barreras) frente a contexto digital (más alto = más capacidad).
+        El tamaño de la burbuja refleja la carga femenina de pérdida de visión.
       </p>
       <div id="scatter" class="viz"></div>
     </section>
 
     <section class="panel">
-      <h2>4) Gender dimension: Female vs male sight-loss burden</h2>
+      <h2>4) Dimensión de género: carga femenina vs masculina</h2>
       <p class="desc">
-        Ratio of female to male sight-loss burden by country. Values above 1 indicate higher female burden.
+        Ratio de carga femenina / masculina. Valores &gt; 1 indican mayor carga femenina relativa.
+        Esta vista hace explícita la intersección género–discapacidad visual.
       </p>
       <div id="gender" class="viz viz-short"></div>
     </section>
 
     <section class="panel">
-      <h2>Methodology & limitations</h2>
+      <h2>Metodología y limitaciones</h2>
       <ul class="desc">
-        <li><strong>WASS</strong> aggregates WebAIM error density and contrast issues (normalized).</li>
-        <li><strong>Digital context</strong> uses DESI ICT specialists as a proxy (normalized).</li>
-        <li><strong>IDFDV</strong> rewards accessibility + capacity, adjusted by female burden.</li>
-        <li><strong>DERVIW</strong> composes risk factors using a geometric mean and is re-normalized to 0–1.</li>
-        <li>All results are relative within the EU-27 (comparative, not absolute).</li>
+        <li><strong>WASS</strong>: agrega severidad de barreras web a partir de error density (mediana) y share de problemas de contraste (normalizados).</li>
+        <li><strong>Contexto digital</strong>: proxy con <em>DESI ICT specialists</em> (normalizado).</li>
+        <li><strong>IDFDV</strong>: favorece accesibilidad y capacidad digital, ajustando por carga femenina de pérdida de visión.</li>
+        <li><strong>DERVIW</strong>: combina factores de riesgo (media geométrica) y se re-normaliza 0–1 para comparar países.</li>
+        <li>Resultados <strong>relativos UE-27</strong>: sirven para comparación interna, no como medida absoluta de accesibilidad.</li>
       </ul>
     </section>
 
     <footer class="footer">
-      <p>Project by Sònia Ribera Coma · Published with GitHub Pages</p>
+      <p>Proyecto de Sònia Ribera Coma · Publicado con GitHub Pages</p>
     </footer>
   </main>
 
