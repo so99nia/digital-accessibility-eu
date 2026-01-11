@@ -4,6 +4,7 @@
   --text:#e7eefc;
   --muted:#a8b3c7;
   --border: rgba(255,255,255,0.12);
+  --border2: rgba(255,255,255,0.18);
 }
 
 *{ box-sizing:border-box; }
@@ -26,27 +27,50 @@ body{
   background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0));
 }
 
-h1{ margin:0 0 10px; font-size:34px; }
-.subtitle{ margin:0 0 14px; color:var(--muted); line-height:1.45; }
+h1{ margin:0 0 10px; font-size:34px; letter-spacing: 0.2px; }
+.subtitle{ margin:0 0 14px; color:var(--muted); line-height:1.55; }
 
 .controls{
   display:flex;
-  gap:10px;
-  align-items:center;
+  gap:12px;
+  align-items:flex-end;
+  flex-wrap: wrap;
   margin:10px 0 8px;
 }
+
+.control{
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+
+label{ color: var(--muted); }
 
 select{
   background:var(--panel);
   color:var(--text);
   border:1px solid var(--border);
   padding:8px 10px;
-  border-radius:8px;
+  border-radius:10px;
+}
+
+.btn{
+  background: rgba(255,255,255,0.10);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 8px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.btn:hover{ border-color: var(--border2); }
+.btn:focus{
+  outline: 2px solid rgba(255,255,255,0.35);
+  outline-offset: 2px;
 }
 
 .metric-help{
   color: var(--muted);
-  line-height: 1.45;
+  line-height: 1.55;
   margin: 6px 0 10px;
   padding: 10px 12px;
   border: 1px solid var(--border);
@@ -73,10 +97,9 @@ select{
 }
 
 .kpi .label{ color:var(--muted); font-size:12px; }
-.kpi .value{ font-size:18px; margin-top:4px; }
-.kpi .value small{ color: var(--muted); font-size: 12px; }
+.kpi .value{ font-size:18px; margin-top:4px; line-height: 1.35; }
 
-.note{ color:var(--muted); margin:8px 0 0; }
+.note{ color:var(--muted); margin:8px 0 0; line-height: 1.45; }
 
 .panel{
   margin:18px 0;
@@ -86,7 +109,8 @@ select{
   border-radius:14px;
 }
 
-.desc{ color:var(--muted); margin-top:6px; line-height:1.45; }
+.desc{ color:var(--muted); margin-top:6px; line-height:1.55; }
+.subtle{ font-size: 13px; }
 
 .viz{
   margin-top:10px;
@@ -97,9 +121,7 @@ select{
   min-height: 520px;
 }
 
-.viz-short{
-  min-height: 420px;
-}
+.viz-short{ min-height: 420px; }
 
 .legend{
   margin-top:10px;
@@ -110,23 +132,30 @@ select{
   flex-wrap: wrap;
 }
 
+.legend-text{
+  margin-top: 6px;
+  color: var(--muted);
+  line-height: 1.45;
+  font-size: 13px;
+}
+
 .tooltip{
   position:fixed;
   pointer-events:none;
   opacity:0;
-  background: rgba(15,20,30,0.95);
+  background: rgba(15,20,30,0.96);
   border:1px solid var(--border);
-  border-radius:10px;
+  border-radius:12px;
   padding:10px 12px;
   color:var(--text);
   font-size:13px;
-  max-width:320px;
+  max-width:340px;
 }
 
 .footer{ color:var(--muted); font-size:13px; padding-bottom:30px; }
 
 /* Resaltado */
-.country.active{ stroke: rgba(255,255,255,0.9); stroke-width:2.2px; }
-.bar.active rect{ stroke: rgba(255,255,255,0.9); stroke-width:2px; }
-.dot.active{ stroke: rgba(255,255,255,0.9); stroke-width:2px; }
-.genderbar.active rect{ stroke: rgba(255,255,255,0.9); stroke-width:2px; }
+.country.active{ stroke: rgba(255,255,255,0.92); stroke-width:2.2px; }
+.bar.active rect{ stroke: rgba(255,255,255,0.92); stroke-width:2px; }
+.dot.active{ stroke: rgba(255,255,255,0.92); stroke-width:2px; }
+.genderbar.active rect{ stroke: rgba(255,255,255,0.92); stroke-width:2px; }
