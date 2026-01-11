@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Digital Accessibility Risk in the EU</title>
+  <title>Digital Exclusion Risk in the EU</title>
   <link rel="stylesheet" href="style.css" />
   <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
@@ -13,11 +13,11 @@
     <div class="container">
       <h1>Digital Exclusion Risk in the EU</h1>
       <p class="subtitle">
-        A country-level analysis combining web accessibility barriers (WebAIM),
-        digital capacity (DESI), and sight-loss prevalence by gender (Vision Atlas).
+        Country-level scrollytelling combining web accessibility barriers (WebAIM),
+        digital capacity (DESI), and sight-loss burden by gender (Vision Atlas).
       </p>
 
-      <div class="controls">
+      <div class="controls" aria-label="Controls">
         <label for="metric">Metric</label>
         <select id="metric">
           <option value="derviw" selected>DERVIW (Risk Index)</option>
@@ -25,41 +25,68 @@
           <option value="wass">WASS (Web Accessibility Severity)</option>
         </select>
       </div>
+
+      <div class="kpis" id="kpis" aria-label="Key indicators"></div>
+
+      <p class="note">
+        Hover a country to view details and cross-highlight across visualizations.
+      </p>
     </div>
   </header>
 
   <main class="container">
+
     <section class="panel">
-      <h2>1) Where is digital exclusion risk concentrated?</h2>
+      <h2>1) Map: Where is the selected metric concentrated?</h2>
+      <p class="desc">
+        This map shows the selected metric across the EU-27. Use it to spot spatial patterns quickly.
+      </p>
       <div id="map" class="viz"></div>
+      <div id="legend" class="legend" aria-label="Legend"></div>
     </section>
 
-    <section class="panel grid2">
-      <div>
-        <h2>2) Country ranking</h2>
-        <div id="ranking" class="viz"></div>
-      </div>
+    <section class="panel">
+      <h2>2) Ranking: Who leads and who lags?</h2>
+      <p class="desc">
+        Countries sorted by the selected metric. This helps compare extremes and identify outliers.
+      </p>
+      <div id="ranking" class="viz viz-short"></div>
+    </section>
 
-      <div>
-        <h2>3) Trade-offs</h2>
-        <div id="scatter" class="viz"></div>
-      </div>
+    <section class="panel">
+      <h2>3) Trade-offs: Web barriers vs digital context</h2>
+      <p class="desc">
+        Scatterplot of WASS (higher = more barriers) vs Digital context (higher = more capacity).
+        Bubble size reflects the female sight-loss burden.
+      </p>
+      <div id="scatter" class="viz"></div>
+    </section>
+
+    <section class="panel">
+      <h2>4) Gender dimension: Female vs male sight-loss burden</h2>
+      <p class="desc">
+        Ratio of female to male sight-loss burden by country. Values above 1 indicate higher female burden.
+      </p>
+      <div id="gender" class="viz viz-short"></div>
     </section>
 
     <section class="panel">
       <h2>Methodology & limitations</h2>
-      <p>
-        All metrics are normalized (0–1) and relative within the EU-27.
-        They are intended for comparative analysis, not absolute measurement.
-      </p>
+      <ul class="desc">
+        <li><strong>WASS</strong> aggregates WebAIM error density and contrast issues (normalized).</li>
+        <li><strong>Digital context</strong> uses DESI ICT specialists as a proxy (normalized).</li>
+        <li><strong>IDFDV</strong> rewards accessibility + capacity, adjusted by female burden.</li>
+        <li><strong>DERVIW</strong> composes risk factors using a geometric mean and is re-normalized to 0–1.</li>
+        <li>All results are relative within the EU-27 (comparative, not absolute).</li>
+      </ul>
     </section>
 
     <footer class="footer">
-      <p>Project by Sònia Ribera Coma · GitHub Pages</p>
+      <p>Project by Sònia Ribera Coma · Published with GitHub Pages</p>
     </footer>
   </main>
 
-  <div id="tooltip" class="tooltip"></div>
+  <div id="tooltip" class="tooltip" role="dialog" aria-live="polite"></div>
   <script src="script.js"></script>
 </body>
 </html>
