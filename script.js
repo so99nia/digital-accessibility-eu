@@ -4,6 +4,7 @@ const kpisContainer = d3.select("#kpis");
 const metricHelp = d3.select("#metricHelp");
 const legendText = d3.select("#legendText");
 const clearBtn = d3.select("#clearSelection");
+const storyText = d3.select("#storyText");
 
 const METRICS = {
   derviw: {
@@ -36,7 +37,7 @@ let byIso2 = new Map();
 let activeIso2 = null;
 let pinnedIso2 = null;
 
-let mapSvg, mapG, mapPath, mapColor;
+let mapSvg, mapG, mapPath, mapColor, mapProjection, geoFeatures = [];
 
 // ---------- Helpers ----------
 const fmt = (x, digits=3) => {
@@ -51,13 +52,21 @@ const fmtInt = (x) => {
   return d3.format(",")(v);
 };
 
+function isValidNumber(x){
+  return x !== null && x !== undefined && !Number.isNaN(+x);
+}
+
 function countryLabel(d){
   const name = d.country_name ?? d.country ?? null;
   return name ? `${name} (${d.iso2})` : `${d.iso2}`;
 }
 
-function isValidNumber(x){
-  return x !== null && x !== undefined && !Number.isNaN(+x);
+function topBottom(n=3){
+  const sorted = [...data].filter(d => isValidNumber(d[selectedMetric]))
+    .sort((a,b) => d3.descending(+a[selectedMetric], +b[selectedMetric]));
+  const top = sorted.slice(0, n);
+  const bottom = sorted.slice(-n).reverse();
+  return { top, bottom, sorted };
 }
 
 // ---------- Tooltip ----------
@@ -66,15 +75,12 @@ function tooltipHtml(d){
     ? (+d.visual_impairment_female / +d.visual_impairment_male)
     : null;
 
-  const female = isValidNumber(d.visual_impairment_female) ? fmtInt(d.visual_impairment_female) : "NA";
-  const male   = isValidNumber(d.visual_impairment_male) ? fmtInt(d.visual_impairment_male) : "NA";
-
   return `
     <div><strong>${countryLabel(d)}</strong></div>
     <div>${METRICS[selectedMetric].label}: <strong>${fmt(d[selectedMetric])}</strong></div>
     <div>WASS: ${fmt(d.wass)} · Contexto digital: ${fmt(d.digital_context)}</div>
-    <div>Pérdida de visión (mujeres): ${female}</div>
-    <div>Pérdida de visión (hombres): ${male}</div>
+    <div>Pérdida de visión (mujeres): ${isValidNumber(d.visual_impairment_female) ? fmtInt(d.visual_impairment_female) : "NA"}</div>
+    <div>Pérdida de visión (hombres): ${isValidNumber(d.visual_impairment_male) ? fmtInt(d.visual_impairment_male) : "NA"}</div>
     <div>Proporción mujeres/hombres: <strong>${ratio ? ratio.toFixed(2) : "NA"}</strong></div>
     <div style="margin-top:6px; color: rgba(255,255,255,0.70); font-size:12px;">
       ${pinnedIso2 ? "Selección fijada (clic para soltar)." : "Clic para fijar este país."}
@@ -105,10 +111,7 @@ function setActive(iso2){
   d3.selectAll(".genderbar").classed("active", d => d.iso2 === activeIso2);
 }
 
-function pinCountry(iso2){
-  pinnedIso2 = iso2;
-}
-
+function pinCountry(iso2){ pinnedIso2 = iso2; }
 function clearPin(){
   pinnedIso2 = null;
   tooltip.style("opacity", 0);
@@ -129,6 +132,8 @@ Promise.all([
   }));
 
   byIso2 = new Map(data.map(d => [d.iso2, d]));
+
+  geoFeatures = geo.features;
 
   initMap(geo);
   renderAll();
@@ -160,10 +165,36 @@ function renderHelp(){
   }
 }
 
+function renderStory(){
+  const { top, bottom } = topBottom(1);
+  if (top.length === 0 || bottom.length === 0){
+    storyText.text("No hay datos suficientes para construir una conclusión automática con esta métrica.");
+    return;
+  }
+
+  const topC = top[0];
+  const botC = bottom[0];
+  const dir = METRICS[selectedMetric].direction;
+
+  if (dir === "higher_better"){
+    storyText.html(
+      `Para <strong>${METRICS[selectedMetric].label}</strong>, el país con mejor resultado relativo es <strong>${countryLabel(topC)}</strong> ` +
+      `(${fmt(topC[selectedMetric])}), mientras que el más rezagado es <strong>${countryLabel(botC)}</strong> (${fmt(botC[selectedMetric])}). ` +
+      `Explora el mapa y el ranking para ver si el patrón se relaciona con barreras web (WASS) o con el contexto digital.`
+    );
+  } else {
+    storyText.html(
+      `Para <strong>${METRICS[selectedMetric].label}</strong>, el mayor riesgo/severidad relativa se observa en <strong>${countryLabel(topC)}</strong> ` +
+      `(${fmt(topC[selectedMetric])}), y el menor en <strong>${countryLabel(botC)}</strong> (${fmt(botC[selectedMetric])}). ` +
+      `Usa la dispersión para comprobar si un mayor contexto digital se asocia (o no) a menos barreras web.`
+    );
+  }
+}
+
 function renderKPIs(){
   kpisContainer.selectAll("*").remove();
 
-  const sorted = [...data].sort((a,b) => d3.descending(a[selectedMetric], b[selectedMetric]));
+  const { sorted } = topBottom(27);
   const top = sorted[0];
   const bottom = sorted[sorted.length - 1];
 
@@ -195,8 +226,8 @@ function initMap(geo){
     .attr("width","100%")
     .attr("height","100%");
 
-  const projection = d3.geoMercator().fitSize([w,h], geo);
-  mapPath = d3.geoPath(projection);
+  mapProjection = d3.geoMercator().fitSize([w,h], geo);
+  mapPath = d3.geoPath(mapProjection);
 
   mapG = mapSvg.append("g");
 
@@ -278,17 +309,67 @@ function colorizeMap(){
   renderLegend(minV, maxV);
 }
 
+function renderMapAnnotations(){
+  // Limpiar capa previa
+  mapSvg.selectAll("g.annotations").remove();
+
+  const { top, bottom } = topBottom(3);
+  const ann = mapSvg.append("g").attr("class","annotations");
+
+  // Filtrar features UE-27 presentes en dataset
+  const featureByIso2 = new Map(
+    geoFeatures.map(f => [f.properties.ISO2, f])
+  );
+
+  function addGroup(items, labelPrefix){
+    const points = items
+      .map(d => {
+        const f = featureByIso2.get(d.iso2);
+        if (!f) return null;
+        const [cx, cy] = mapPath.centroid(f);
+        return { ...d, cx, cy };
+      })
+      .filter(x => x && isFinite(x.cx) && isFinite(x.cy));
+
+    const g = ann.append("g");
+
+    g.selectAll("circle")
+      .data(points)
+      .enter()
+      .append("circle")
+      .attr("class","annotation-dot")
+      .attr("cx", d => d.cx)
+      .attr("cy", d => d.cy)
+      .attr("r", 5);
+
+    g.selectAll("text")
+      .data(points)
+      .enter()
+      .append("text")
+      .attr("class","annotation-label")
+      .attr("x", d => d.cx + 8)
+      .attr("y", d => d.cy - 8)
+      .text(d => `${labelPrefix} ${d.iso2}`);
+  }
+
+  addGroup(top, "Top");
+  addGroup(bottom, "Bottom");
+}
+
 // ---------- Ranking ----------
 function renderRanking(){
   const container = d3.select("#ranking");
   container.selectAll("*").remove();
 
   const w = 980, h = 420;
-  const margin = {top: 10, right: 20, bottom: 35, left: 75};
+  const margin = {top: 10, right: 20, bottom: 35, left: 85};
 
   const svg = container.append("svg").attr("viewBox", `0 0 ${w} ${h}`);
 
-  const sorted = [...data].sort((a,b) => d3.descending(a[selectedMetric], b[selectedMetric]));
+  const { sorted, top, bottom } = topBottom(27);
+
+  const topSet = new Set(top.map(d => d.iso2));
+  const bottomSet = new Set(bottom.map(d => d.iso2));
 
   const x = d3.scaleLinear()
     .domain([0, d3.max(sorted, d => +d[selectedMetric])]).nice()
@@ -350,6 +431,14 @@ function renderRanking(){
     .attr("fill","rgba(255,255,255,0.85)")
     .style("font-size","11px")
     .text(d => fmt(d[selectedMetric]));
+
+  // Anotaciones Top/Bottom en ranking
+  row.filter(d => topSet.has(d.iso2) || bottomSet.has(d.iso2))
+    .append("text")
+    .attr("class","annotation-label")
+    .attr("x", d => x(+d[selectedMetric]) + 58)
+    .attr("y", d => y(d.iso2) + y.bandwidth()/2 + 4)
+    .text(d => topSet.has(d.iso2) ? "Top 3" : "Bottom 3");
 }
 
 // ---------- Scatter ----------
@@ -358,7 +447,7 @@ function renderScatter(){
   container.selectAll("*").remove();
 
   const w = 980, h = 520;
-  const margin = {top: 10, right: 20, bottom: 55, left: 80};
+  const margin = {top: 10, right: 20, bottom: 55, left: 90};
 
   const svg = container.append("svg").attr("viewBox", `0 0 ${w} ${h}`);
 
@@ -395,7 +484,7 @@ function renderScatter(){
 
   svg.append("text")
     .attr("transform","rotate(-90)")
-    .attr("x", -h/2).attr("y", 22)
+    .attr("x", -h/2).attr("y", 26)
     .attr("text-anchor","middle")
     .attr("fill","rgba(255,255,255,0.75)")
     .style("font-size","12px")
@@ -439,7 +528,7 @@ function renderGender(){
   container.selectAll("*").remove();
 
   const w = 980, h = 420;
-  const margin = {top: 10, right: 20, bottom: 35, left: 85};
+  const margin = {top: 10, right: 20, bottom: 35, left: 95};
 
   const sorted = [...data]
     .filter(d => isValidNumber(d.female_male_ratio))
@@ -515,15 +604,18 @@ function renderGender(){
     .text(d => (+d.female_male_ratio).toFixed(2));
 }
 
-// ---------- Render master ----------
+// ---------- Master render ----------
 function renderAll(){
   renderHelp();
+  renderStory();
   renderKPIs();
+
   colorizeMap();
+  renderMapAnnotations();
+
   renderRanking();
   renderScatter();
   renderGender();
 
-  // Si hay pin, mantener resaltado
   if (pinnedIso2) setActive(pinnedIso2);
 }
