@@ -11,13 +11,14 @@
 <body>
   <header class="hero">
     <div class="container">
-      <h1>Accesibilidad digital en la UE: riesgo e inclusión</h1>
+      <h1>Accesibilidad digital en la Unión Europea: riesgo e inclusión</h1>
       <p class="subtitle">
         Comparativa a nivel país (UE-27) que combina barreras de accesibilidad web (WebAIM),
-        contexto digital (DESI) y carga de pérdida de visión por género (Vision Atlas).
+        contexto digital (DESI) y el <strong>número estimado de personas con pérdida de visión</strong>,
+        desagregado por género (Vision Atlas).
       </p>
 
-      <div class="controls" aria-label="Controles">
+      <div class="controls" aria-label="Controles de visualización">
         <div class="control">
           <label for="metric">Métrica</label>
           <select id="metric">
@@ -27,28 +28,27 @@
           </select>
         </div>
 
-        <button id="clearSelection" class="btn" type="button" aria-label="Limpiar selección">
+        <button id="clearSelection" class="btn" type="button">
           Limpiar selección
         </button>
 
-        <!-- Toggle alto contraste -->
-        <div class="toggle" role="group" aria-label="Preferencias de visualización">
+        <div class="toggle">
           <input type="checkbox" id="hcToggle" />
           <label for="hcToggle">Modo alto contraste</label>
         </div>
       </div>
 
-      <div id="metricHelp" class="metric-help" aria-label="Cómo interpretar la métrica"></div>
+      <div id="metricHelp" class="metric-help"></div>
 
       <div class="story">
         <div class="story-title">Conclusión rápida</div>
-        <div id="storyText" class="story-text" aria-label="Conclusión rápida"></div>
+        <div id="storyText" class="story-text"></div>
       </div>
 
-      <div class="kpis" id="kpis" aria-label="Indicadores clave"></div>
+      <div class="kpis" id="kpis"></div>
 
       <p class="note">
-        Consejo: pasa el ratón por un país para ver detalles. Si haces clic, el país queda fijado para comparar con calma.
+        Consejo: pasa el ratón por un país para ver detalles. Haz clic para fijarlo y compararlo con calma.
       </p>
     </div>
   </header>
@@ -58,61 +58,64 @@
     <section class="panel">
       <h2>1) Mapa: distribución por país</h2>
       <p class="desc">
-        El mapa permite detectar de un vistazo dónde se concentran los valores más altos y más bajos de la métrica seleccionada.
-        Incluye anotaciones automáticas con los 3 países con valores más altos y más bajos.
+        El mapa permite identificar de un vistazo dónde se concentran los valores más altos y más bajos
+        de la métrica seleccionada dentro de la UE-27.
       </p>
-      <div id="map" class="viz" role="img" aria-label="Mapa coroplético de la Unión Europea"></div>
-      <div id="legend" class="legend" aria-label="Leyenda del mapa"></div>
-      <div id="legendText" class="legend-text" aria-label="Explicación de la leyenda"></div>
+      <div id="map" class="viz"></div>
+      <div id="legend" class="legend"></div>
+      <div id="legendText" class="legend-text"></div>
     </section>
 
     <section class="panel">
       <h2>2) Ranking: comparativa ordenada</h2>
       <p class="desc">
-        Ordenamos los países de mayor a menor para identificar líderes, rezagados y valores atípicos. Se anotan Top 3 y Bottom 3.
+        Los países se ordenan de mayor a menor valor para identificar patrones, países destacados
+        y los 3 valores más altos y más bajos.
       </p>
-      <div id="ranking" class="viz viz-short" role="img" aria-label="Ranking por país"></div>
+      <div id="ranking" class="viz viz-short"></div>
     </section>
 
     <section class="panel">
-      <h2>3) Relación: barreras web vs contexto digital</h2>
+      <h2>3) Relación entre barreras web y contexto digital</h2>
       <p class="desc">
-        Este diagrama muestra la relación entre <strong>WASS</strong> (más alto = más barreras)
-        y el <strong>contexto digital</strong> (más alto = más capacidad). El tamaño de la burbuja representa la
-        carga femenina de pérdida de visión (valor absoluto), para introducir la dimensión de necesidad.
+        Este gráfico muestra la relación entre <strong>WASS</strong> (más alto = más barreras web)
+        y el <strong>contexto digital</strong> (más alto = mayor capacidad).
+        El tamaño de la burbuja representa el <strong>número estimado de mujeres con pérdida de visión</strong>.
       </p>
-      <div id="scatter" class="viz" role="img" aria-label="Diagrama de dispersión"></div>
+      <div id="scatter" class="viz"></div>
     </section>
 
     <section class="panel">
-      <h2>4) Perspectiva de género: proporción mujeres/hombres</h2>
+      <h2>4) Perspectiva de género</h2>
       <p class="desc">
-        Visualizamos el ratio <strong>mujeres / hombres</strong> en carga de pérdida de visión. Valores por encima de 1
-        indican mayor carga femenina relativa. Esta vista hace explícita la dimensión interseccional del análisis.
+        Se visualiza el ratio <strong>mujeres / hombres</strong> del número estimado de personas con pérdida de visión.
+        Valores superiores a 1 indican una mayor afectación relativa en mujeres.
       </p>
-      <div id="gender" class="viz viz-short" role="img" aria-label="Gráfico de barras del ratio mujeres/hombres"></div>
+      <div id="gender" class="viz viz-short"></div>
     </section>
 
     <section class="panel">
       <h2>Metodología y limitaciones</h2>
       <ul class="desc">
-        <li><strong>WASS</strong>: indicador compuesto a partir de severidad de errores y problemas de contraste (normalizados).</li>
-        <li><strong>Contexto digital</strong>: proxy basado en <em>DESI ICT specialists</em> (normalizado).</li>
-        <li><strong>IDFDV</strong>: índice de inclusión que combina accesibilidad web y capacidad digital, ajustado por necesidad.</li>
-        <li><strong>DERVIW</strong>: índice de riesgo compuesto (media geométrica) y re-escalado 0–1 para comparar dentro de UE-27.</li>
-        <li>Lectura: resultados <strong>relativos dentro de UE-27</strong>. No representan una auditoría absoluta país a país.</li>
+        <li><strong>WASS</strong>: indicador compuesto de severidad de barreras web (errores y contraste), normalizado.</li>
+        <li><strong>Contexto digital</strong>: proxy basado en DESI (especialistas TIC), normalizado.</li>
+        <li><strong>IDFDV</strong>: índice de inclusión que combina accesibilidad y contexto digital, ajustado por necesidad.</li>
+        <li><strong>DERVIW</strong>: índice de riesgo compuesto, reescalado entre 0 y 1 para comparación relativa.</li>
+        <li>Los resultados son <strong>comparativos dentro de la UE-27</strong> y no constituyen auditorías absolutas.</li>
       </ul>
-      <p class="desc subtle">
-        Fuentes: WebAIM · DESI (Comisión Europea) · Vision Atlas. Publicación: GitHub Pages.
-      </p>
     </section>
 
     <footer class="footer">
-      <p>Proyecto de Sònia Ribera Coma · Visualización interactiva (UE-27)</p>
+      <p>
+        Proyecto de la asignatura <strong>Visualización de datos</strong> ·
+        Máster Universitario en Ciencia de Datos (UOC) · 2026  
+        <br />
+        Autora: Sònia Ribera Coma
+      </p>
     </footer>
   </main>
 
-  <div id="tooltip" class="tooltip" role="dialog" aria-live="polite"></div>
+  <div id="tooltip" class="tooltip"></div>
   <script src="script.js"></script>
 </body>
 </html>
