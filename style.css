@@ -33,7 +33,7 @@ h1{ margin:0 0 10px; font-size:34px; }
   display:flex;
   gap:10px;
   align-items:center;
-  margin:10px 0 10px;
+  margin:10px 0 8px;
 }
 
 select{
@@ -44,11 +44,25 @@ select{
   border-radius:8px;
 }
 
+.metric-help{
+  color: var(--muted);
+  line-height: 1.45;
+  margin: 6px 0 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(0,0,0,0.18);
+}
+
 .kpis{
   display:grid;
   grid-template-columns: repeat(3, 1fr);
   gap:12px;
   margin: 10px 0 6px;
+}
+
+@media (max-width: 900px){
+  .kpis{ grid-template-columns: 1fr; }
 }
 
 .kpi{
@@ -60,6 +74,7 @@ select{
 
 .kpi .label{ color:var(--muted); font-size:12px; }
 .kpi .value{ font-size:18px; margin-top:4px; }
+.kpi .value small{ color: var(--muted); font-size: 12px; }
 
 .note{ color:var(--muted); margin:8px 0 0; }
 
@@ -105,12 +120,13 @@ select{
   padding:10px 12px;
   color:var(--text);
   font-size:13px;
-  max-width:300px;
+  max-width:320px;
 }
 
 .footer{ color:var(--muted); font-size:13px; padding-bottom:30px; }
 
-/* Active highlight */
+/* Resaltado */
 .country.active{ stroke: rgba(255,255,255,0.9); stroke-width:2.2px; }
 .bar.active rect{ stroke: rgba(255,255,255,0.9); stroke-width:2px; }
 .dot.active{ stroke: rgba(255,255,255,0.9); stroke-width:2px; }
+.genderbar.active rect{ stroke: rgba(255,255,255,0.9); stroke-width:2px; }
