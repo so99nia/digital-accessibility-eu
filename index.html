@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Digital Accessibility Risk in the EU</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+
+<body>
+  <header class="hero">
+    <div class="container">
+      <h1>Digital Exclusion Risk in the EU</h1>
+      <p class="subtitle">
+        A country-level analysis combining web accessibility barriers (WebAIM),
+        digital capacity (DESI), and sight-loss prevalence by gender (Vision Atlas).
+      </p>
+
+      <div class="controls">
+        <label for="metric">Metric</label>
+        <select id="metric">
+          <option value="derviw" selected>DERVIW (Risk Index)</option>
+          <option value="idfdv">IDFDV (Inclusion Index)</option>
+          <option value="wass">WASS (Web Accessibility Severity)</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="panel">
+      <h2>1) Where is digital exclusion risk concentrated?</h2>
+      <div id="map" class="viz"></div>
+    </section>
+
+    <section class="panel grid2">
+      <div>
+        <h2>2) Country ranking</h2>
+        <div id="ranking" class="viz"></div>
+      </div>
+
+      <div>
+        <h2>3) Trade-offs</h2>
+        <div id="scatter" class="viz"></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Methodology & limitations</h2>
+      <p>
+        All metrics are normalized (0–1) and relative within the EU-27.
+        They are intended for comparative analysis, not absolute measurement.
+      </p>
+    </section>
+
+    <footer class="footer">
+      <p>Project by Sònia Ribera Coma · GitHub Pages</p>
+    </footer>
+  </main>
+
+  <div id="tooltip" class="tooltip"></div>
+  <script src="script.js"></script>
+</body>
+</html>
