@@ -78,6 +78,23 @@ select{
   background: rgba(0,0,0,0.18);
 }
 
+.story{
+  margin: 10px 0 10px;
+  padding: 12px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(0,0,0,0.18);
+}
+.story-title{
+  color: rgba(255,255,255,0.85);
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.story-text{
+  color: var(--muted);
+  line-height: 1.55;
+}
+
 .kpis{
   display:grid;
   grid-template-columns: repeat(3, 1fr);
@@ -149,7 +166,7 @@ select{
   padding:10px 12px;
   color:var(--text);
   font-size:13px;
-  max-width:340px;
+  max-width:360px;
 }
 
 .footer{ color:var(--muted); font-size:13px; padding-bottom:30px; }
@@ -159,3 +176,18 @@ select{
 .bar.active rect{ stroke: rgba(255,255,255,0.92); stroke-width:2px; }
 .dot.active{ stroke: rgba(255,255,255,0.92); stroke-width:2px; }
 .genderbar.active rect{ stroke: rgba(255,255,255,0.92); stroke-width:2px; }
+
+/* Estilo de anotaciones */
+.annotation-label{
+  font-size: 11px;
+  fill: rgba(255,255,255,0.85);
+  paint-order: stroke;
+  stroke: rgba(0,0,0,0.55);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
+.annotation-dot{
+  stroke: rgba(255,255,255,0.85);
+  stroke-width: 1.4px;
+  fill: rgba(255,255,255,0.12);
+}
