@@ -1,3 +1,6 @@
+// -----------------------------
+// Configuración y estado global
+// -----------------------------
 const metricSelect = d3.select("#metric");
 const tooltip = d3.select("#tooltip");
 const kpisContainer = d3.select("#kpis");
@@ -12,22 +15,23 @@ const METRICS = {
     label: "DERVIW · Índice de riesgo",
     direction: "higher_worse",
     help:
-      "Cómo interpretarlo: valores más altos indican mayor riesgo compuesto. " +
-      "En términos prácticos, se asocian a más barreras web, menor contexto digital y mayor carga femenina relativa."
+      "Valores más altos indican mayor riesgo relativo de exclusión digital. " +
+      "Se asocian a más barreras web, un contexto digital menos favorable " +
+      "y un mayor número estimado de mujeres con pérdida de visión."
   },
   idfdv: {
     label: "IDFDV · Índice de inclusión",
     direction: "higher_better",
     help:
-      "Cómo interpretarlo: valores más altos indican mejores condiciones de inclusión. " +
-      "Combina accesibilidad web y contexto digital, ajustado por necesidad (carga femenina de pérdida de visión)."
+      "Valores más altos indican mejores condiciones relativas de inclusión digital. " +
+      "El índice combina accesibilidad web y contexto digital, ajustado por necesidad."
   },
   wass: {
     label: "WASS · Severidad de barreras web",
     direction: "higher_worse",
     help:
-      "Cómo interpretarlo: valores más altos reflejan mayor severidad de barreras de accesibilidad web " +
-      "(peor experiencia, más errores y problemas de contraste)."
+      "Valores más altos reflejan una mayor severidad de barreras de accesibilidad web, " +
+      "como errores de marcado o problemas de contraste."
   }
 };
 
@@ -35,67 +39,76 @@ let selectedMetric = metricSelect.node().value;
 
 let data = [];
 let byIso2 = new Map();
-let activeIso2 = null;
-let pinnedIso2 = null;
 
-let mapSvg, mapG, mapPath, mapColor, geoFeatures = [];
+let pinnedIso2 = null;
+let activeIso2 = null;
+
 let highContrast = false;
 
-// ---------- Helpers ----------
-const fmt = (x, digits=3) => {
+let mapSvg, mapG, mapPath, mapColor;
+let geoFeatures = [];
+
+// -----------------------------
+// Helpers
+// -----------------------------
+function isValidNumber(x) {
+  return x !== null && x !== undefined && !Number.isNaN(+x);
+}
+
+const fmt = (x, digits = 3) => {
   const v = +x;
-  if (Number.isNaN(v) || x === null || x === undefined) return "NA";
+  if (!isValidNumber(v)) return "NA";
   return v.toFixed(digits);
 };
 
 const fmtInt = (x) => {
   const v = +x;
-  if (Number.isNaN(v) || x === null || x === undefined) return "NA";
+  if (!isValidNumber(v)) return "NA";
   return d3.format(",")(v);
 };
 
-function isValidNumber(x){
-  return x !== null && x !== undefined && !Number.isNaN(+x);
-}
-
-function countryLabel(d){
+function countryLabel(d) {
   const name = d.country_name ?? d.country ?? null;
   return name ? `${name} (${d.iso2})` : `${d.iso2}`;
 }
 
-function topBottom(n=3){
-  const sorted = [...data].filter(d => isValidNumber(d[selectedMetric]))
-    .sort((a,b) => d3.descending(+a[selectedMetric], +b[selectedMetric]));
+function currentInterpolator() {
+  // Turbo = muy vistoso; Cividis = más robusto para daltonismo/contraste
+  return highContrast ? d3.interpolateCividis : d3.interpolateTurbo;
+}
+
+function topBottom(n = 3) {
+  const sorted = [...data]
+    .filter(d => isValidNumber(d[selectedMetric]))
+    .sort((a, b) => d3.descending(+a[selectedMetric], +b[selectedMetric]));
   const top = sorted.slice(0, n);
   const bottom = sorted.slice(-n).reverse();
   return { top, bottom, sorted };
 }
 
-function currentInterpolator(){
-  // Turbo es vistoso, Cividis es más robusto para daltonismo/contraste
-  return highContrast ? d3.interpolateCividis : d3.interpolateTurbo;
-}
-
-// ---------- Tooltip ----------
-function tooltipHtml(d){
-  const ratio = (isValidNumber(d.visual_impairment_male) && +d.visual_impairment_male > 0)
-    ? (+d.visual_impairment_female / +d.visual_impairment_male)
-    : null;
+// -----------------------------
+// Tooltip
+// -----------------------------
+function tooltipHtml(d) {
+  const ratio =
+    isValidNumber(d.visual_impairment_male) && +d.visual_impairment_male > 0
+      ? (+d.visual_impairment_female / +d.visual_impairment_male).toFixed(2)
+      : "NA";
 
   return `
     <div><strong>${countryLabel(d)}</strong></div>
     <div>${METRICS[selectedMetric].label}: <strong>${fmt(d[selectedMetric])}</strong></div>
     <div>WASS: ${fmt(d.wass)} · Contexto digital: ${fmt(d.digital_context)}</div>
-    <div>Pérdida de visión (mujeres): ${isValidNumber(d.visual_impairment_female) ? fmtInt(d.visual_impairment_female) : "NA"}</div>
-    <div>Pérdida de visión (hombres): ${isValidNumber(d.visual_impairment_male) ? fmtInt(d.visual_impairment_male) : "NA"}</div>
-    <div>Proporción mujeres/hombres: <strong>${ratio ? ratio.toFixed(2) : "NA"}</strong></div>
+    <div>Mujeres con pérdida de visión (estimación): ${isValidNumber(d.visual_impairment_female) ? fmtInt(d.visual_impairment_female) : "NA"}</div>
+    <div>Hombres con pérdida de visión (estimación): ${isValidNumber(d.visual_impairment_male) ? fmtInt(d.visual_impairment_male) : "NA"}</div>
+    <div>Ratio mujeres / hombres: <strong>${ratio}</strong></div>
     <div style="margin-top:6px; color: rgba(255,255,255,0.70); font-size:12px;">
       ${pinnedIso2 ? "Selección fijada (clic para soltar)." : "Clic para fijar este país."}
     </div>
   `;
 }
 
-function showTooltip(event, d){
+function showTooltip(event, d) {
   tooltip
     .style("opacity", 1)
     .html(tooltipHtml(d))
@@ -103,13 +116,15 @@ function showTooltip(event, d){
     .style("top", (event.clientY + 14) + "px");
 }
 
-function hideTooltip(){
+function hideTooltip() {
   if (pinnedIso2) return;
   tooltip.style("opacity", 0);
 }
 
-// ---------- Cross highlight ----------
-function setActive(iso2){
+// -----------------------------
+// Resaltado cruzado
+// -----------------------------
+function setActive(iso2) {
   activeIso2 = iso2;
 
   d3.selectAll(".country").classed("active", d => d.properties.ISO2 === activeIso2);
@@ -118,68 +133,56 @@ function setActive(iso2){
   d3.selectAll(".genderbar").classed("active", d => d.iso2 === activeIso2);
 }
 
-function pinCountry(iso2){ pinnedIso2 = iso2; }
-function clearPin(){
+function pinCountry(iso2) { pinnedIso2 = iso2; }
+
+function clearPin() {
   pinnedIso2 = null;
   tooltip.style("opacity", 0);
   setActive(null);
 }
 
-// ---------- Load ----------
-Promise.all([
-  d3.csv("data/country_metrics_public.csv", d3.autoType),
-  d3.json("https://raw.githubusercontent.com/leakyMirror/map-of-europe/master/GeoJSON/europe.geojson")
-]).then(([csv, geo]) => {
-
-  data = csv.map(d => ({
-    ...d,
-    female_male_ratio: (isValidNumber(d.visual_impairment_male) && +d.visual_impairment_male > 0)
-      ? (+d.visual_impairment_female / +d.visual_impairment_male)
-      : null
-  }));
-
-  byIso2 = new Map(data.map(d => [d.iso2, d]));
-  geoFeatures = geo.features;
-
-  initMap(geo);
-  renderAll();
-
-  metricSelect.on("change", () => {
-    selectedMetric = metricSelect.node().value;
-    renderAll();
-    if (pinnedIso2 && byIso2.has(pinnedIso2)){
-      tooltip.html(tooltipHtml(byIso2.get(pinnedIso2))).style("opacity", 1);
-    }
-  });
-
-  clearBtn.on("click", () => clearPin());
-
-  hcToggle.on("change", () => {
-    highContrast = hcToggle.node().checked;
-    d3.select("body").classed("hc", highContrast);
-    renderAll();
-  });
-
-}).catch(err => {
-  console.error("Error cargando archivos:", err);
-  metricHelp.text("Error cargando datos. Revisa que exista data/country_metrics_public.csv en el repositorio.");
-});
-
-// ---------- Textos ----------
-function renderHelp(){
+// -----------------------------
+// Textos (ayuda, legend, KPIs, storyline)
+// -----------------------------
+function renderHelp() {
   metricHelp.text(METRICS[selectedMetric].help);
 
   const dir = METRICS[selectedMetric].direction;
-  if (dir === "higher_better"){
+  if (dir === "higher_better") {
     legendText.text("Leyenda: colores más intensos indican valores más altos (mejor situación relativa para esta métrica).");
   } else {
     legendText.text("Leyenda: colores más intensos indican valores más altos (peor situación relativa para esta métrica).");
   }
 }
 
-function renderStory(){
+function renderKPIs() {
+  kpisContainer.selectAll("*").remove();
+
+  const { sorted } = topBottom(27);
+  if (sorted.length === 0) return;
+
+  const maxRow = sorted[0];
+  const minRow = sorted[sorted.length - 1];
+
+  const cards = [
+    { label: "Métrica activa", value: METRICS[selectedMetric].label },
+    { label: "Valor más alto", value: `${countryLabel(maxRow)} · ${fmt(maxRow[selectedMetric])}` },
+    { label: "Valor más bajo", value: `${countryLabel(minRow)} · ${fmt(minRow[selectedMetric])}` },
+  ];
+
+  const kpi = kpisContainer.selectAll("div")
+    .data(cards)
+    .enter()
+    .append("div")
+    .attr("class", "kpi");
+
+  kpi.append("div").attr("class", "label").text(d => d.label);
+  kpi.append("div").attr("class", "value").text(d => d.value);
+}
+
+function renderStory() {
   const { top, bottom } = topBottom(1);
-  if (top.length === 0 || bottom.length === 0){
+  if (top.length === 0 || bottom.length === 0) {
     storyText.text("No hay datos suficientes para construir una conclusión automática con esta métrica.");
     return;
   }
@@ -188,46 +191,27 @@ function renderStory(){
   const botC = bottom[0];
   const dir = METRICS[selectedMetric].direction;
 
-  if (dir === "higher_better"){
+  if (dir === "higher_better") {
     storyText.html(
-      `Para <strong>${METRICS[selectedMetric].label}</strong>, el país con mejor resultado relativo es <strong>${countryLabel(topC)}</strong> ` +
-      `(${fmt(topC[selectedMetric])}), mientras que el más rezagado es <strong>${countryLabel(botC)}</strong> (${fmt(botC[selectedMetric])}). ` +
-      `Explora el mapa y el ranking para ver si el patrón se relaciona con barreras web (WASS) o con el contexto digital.`
+      `Para <strong>${METRICS[selectedMetric].label}</strong>, el mejor resultado relativo se observa en ` +
+      `<strong>${countryLabel(topC)}</strong> (${fmt(topC[selectedMetric])}), mientras que el más bajo aparece en ` +
+      `<strong>${countryLabel(botC)}</strong> (${fmt(botC[selectedMetric])}). ` +
+      `Explora el mapa y el ranking para ubicar el patrón territorial y contrástalo con WASS y el contexto digital.`
     );
   } else {
     storyText.html(
-      `Para <strong>${METRICS[selectedMetric].label}</strong>, el mayor riesgo/severidad relativa se observa en <strong>${countryLabel(topC)}</strong> ` +
-      `(${fmt(topC[selectedMetric])}), y el menor en <strong>${countryLabel(botC)}</strong> (${fmt(botC[selectedMetric])}). ` +
-      `Usa la dispersión para comprobar si un mayor contexto digital se asocia (o no) a menos barreras web.`
+      `Para <strong>${METRICS[selectedMetric].label}</strong>, el valor más alto (peor situación relativa) se observa en ` +
+      `<strong>${countryLabel(topC)}</strong> (${fmt(topC[selectedMetric])}), y el más bajo en ` +
+      `<strong>${countryLabel(botC)}</strong> (${fmt(botC[selectedMetric])}). ` +
+      `Usa la dispersión para comprobar si un mayor contexto digital se relaciona con menos barreras web.`
     );
   }
 }
 
-function renderKPIs(){
-  kpisContainer.selectAll("*").remove();
-
-  const { sorted } = topBottom(27);
-  const top = sorted[0];
-  const bottom = sorted[sorted.length - 1];
-
-  const cards = [
-    { label: "Métrica activa", value: METRICS[selectedMetric].label },
-    { label: "Valor más alto", value: `${countryLabel(top)} · ${fmt(top[selectedMetric])}` },
-    { label: "Valor más bajo", value: `${countryLabel(bottom)} · ${fmt(bottom[selectedMetric])}` },
-  ];
-
-  const kpi = kpisContainer.selectAll("div")
-    .data(cards)
-    .enter()
-    .append("div")
-    .attr("class","kpi");
-
-  kpi.append("div").attr("class","label").text(d => d.label);
-  kpi.append("div").attr("class","value").text(d => d.value);
-}
-
-// ---------- Map ----------
-function initMap(geo){
+// -----------------------------
+// Mapa
+// -----------------------------
+function initMap(geo) {
   const w = 980, h = 520;
 
   d3.select("#map").selectAll("*").remove();
@@ -235,10 +219,10 @@ function initMap(geo){
   mapSvg = d3.select("#map")
     .append("svg")
     .attr("viewBox", `0 0 ${w} ${h}`)
-    .attr("width","100%")
-    .attr("height","100%");
+    .attr("width", "100%")
+    .attr("height", "100%");
 
-  const projection = d3.geoMercator().fitSize([w,h], geo);
+  const projection = d3.geoMercator().fitSize([w, h], geo);
   mapPath = d3.geoPath(projection);
 
   mapG = mapSvg.append("g");
@@ -247,10 +231,10 @@ function initMap(geo){
     .data(geo.features)
     .enter()
     .append("path")
-    .attr("class","country")
+    .attr("class", "country")
     .attr("d", mapPath)
-    .attr("stroke","rgba(255,255,255,0.18)")
-    .attr("stroke-width",1)
+    .attr("stroke", "rgba(255,255,255,0.18)")
+    .attr("stroke-width", 1)
     .attr("fill", d => byIso2.has(d.properties.ISO2) ? "#2b3a55" : "rgba(255,255,255,0.04)")
     .style("cursor", d => byIso2.has(d.properties.ISO2) ? "pointer" : "default")
     .on("mousemove", (event, d) => {
@@ -268,7 +252,7 @@ function initMap(geo){
       const iso2 = d.properties.ISO2;
       if (!byIso2.has(iso2)) return;
 
-      if (pinnedIso2 === iso2){
+      if (pinnedIso2 === iso2) {
         clearPin();
       } else {
         pinCountry(iso2);
@@ -278,7 +262,7 @@ function initMap(geo){
     });
 }
 
-function renderLegend(minV, maxV){
+function renderLegend(minV, maxV) {
   const legend = d3.select("#legend");
   legend.selectAll("*").remove();
 
@@ -293,8 +277,8 @@ function renderLegend(minV, maxV){
 
   const interp = currentInterpolator();
   const ctx = canvas.node().getContext("2d");
-  for (let i=0; i<w; i++){
-    const t = i/(w-1);
+  for (let i = 0; i < w; i++) {
+    const t = i / (w - 1);
     ctx.fillStyle = interp(t);
     ctx.fillRect(i, 0, 1, h);
   }
@@ -302,7 +286,7 @@ function renderLegend(minV, maxV){
   legend.append("div").text(`mín: ${fmt(minV)} · máx: ${fmt(maxV)}`);
 }
 
-function colorizeMap(){
+function colorizeMap() {
   const values = data.map(d => d[selectedMetric]).filter(v => isValidNumber(v));
   const [minV, maxV] = d3.extent(values);
 
@@ -322,15 +306,15 @@ function colorizeMap(){
   renderLegend(minV, maxV);
 }
 
-function renderMapAnnotations(){
+function renderMapAnnotations() {
   mapSvg.selectAll("g.annotations").remove();
 
   const { top, bottom } = topBottom(3);
-  const ann = mapSvg.append("g").attr("class","annotations");
+  const ann = mapSvg.append("g").attr("class", "annotations");
 
   const featureByIso2 = new Map(geoFeatures.map(f => [f.properties.ISO2, f]));
 
-  function addGroup(items, labelPrefix){
+  function addGroup(items, labelPrefix) {
     const points = items
       .map(d => {
         const f = featureByIso2.get(d.iso2);
@@ -346,7 +330,7 @@ function renderMapAnnotations(){
       .data(points)
       .enter()
       .append("circle")
-      .attr("class","annotation-dot")
+      .attr("class", "annotation-dot")
       .attr("cx", d => d.cx)
       .attr("cy", d => d.cy)
       .attr("r", 5);
@@ -355,23 +339,25 @@ function renderMapAnnotations(){
       .data(points)
       .enter()
       .append("text")
-      .attr("class","annotation-label")
+      .attr("class", "annotation-label")
       .attr("x", d => d.cx + 8)
       .attr("y", d => d.cy - 8)
       .text(d => `${labelPrefix} ${d.iso2}`);
   }
 
-  addGroup(top, "Top");
-  addGroup(bottom, "Bottom");
+  addGroup(top, "Top 3");
+  addGroup(bottom, "3 más bajos");
 }
 
-// ---------- Ranking ----------
-function renderRanking(){
+// -----------------------------
+// Ranking
+// -----------------------------
+function renderRanking() {
   const container = d3.select("#ranking");
   container.selectAll("*").remove();
 
   const w = 980, h = 420;
-  const margin = {top: 10, right: 20, bottom: 35, left: 85};
+  const margin = { top: 10, right: 20, bottom: 35, left: 85 };
 
   const svg = container.append("svg").attr("viewBox", `0 0 ${w} ${h}`);
 
@@ -391,22 +377,22 @@ function renderRanking(){
   svg.append("g")
     .attr("transform", `translate(0,${h - margin.bottom})`)
     .call(d3.axisBottom(x).ticks(6))
-    .call(g => g.selectAll("text").attr("fill","rgba(255,255,255,0.8)"))
-    .call(g => g.selectAll("path,line").attr("stroke","rgba(255,255,255,0.25)"));
+    .call(g => g.selectAll("text").attr("fill", "rgba(255,255,255,0.8)"))
+    .call(g => g.selectAll("path,line").attr("stroke", "rgba(255,255,255,0.25)"));
 
   svg.append("g")
     .attr("transform", `translate(${margin.left},0)`)
     .call(d3.axisLeft(y))
-    .call(g => g.selectAll("text").attr("fill","rgba(255,255,255,0.8)"))
-    .call(g => g.selectAll("path,line").attr("stroke","rgba(255,255,255,0.25)"));
+    .call(g => g.selectAll("text").attr("fill", "rgba(255,255,255,0.8)"))
+    .call(g => g.selectAll("path,line").attr("stroke", "rgba(255,255,255,0.25)"));
 
   const row = svg.append("g")
     .selectAll("g")
     .data(sorted)
     .enter()
     .append("g")
-    .attr("class","bar")
-    .style("cursor","pointer")
+    .attr("class", "bar")
+    .style("cursor", "pointer")
     .on("mousemove", (event, d) => {
       if (!pinnedIso2) showTooltip(event, d);
       setActive(pinnedIso2 ?? d.iso2);
@@ -416,7 +402,7 @@ function renderRanking(){
       setActive(pinnedIso2);
     })
     .on("click", (event, d) => {
-      if (pinnedIso2 === d.iso2){
+      if (pinnedIso2 === d.iso2) {
         clearPin();
       } else {
         pinCountry(d.iso2);
@@ -431,30 +417,32 @@ function renderRanking(){
     .attr("width", d => x(+d[selectedMetric]) - x(0))
     .attr("height", y.bandwidth())
     .attr("fill", d => mapColor(d[selectedMetric]))
-    .attr("stroke","rgba(255,255,255,0.10)");
+    .attr("stroke", "rgba(255,255,255,0.10)");
 
   row.append("text")
     .attr("x", d => x(+d[selectedMetric]) + 6)
-    .attr("y", d => y(d.iso2) + y.bandwidth()/2 + 4)
-    .attr("fill","rgba(255,255,255,0.85)")
-    .style("font-size","11px")
+    .attr("y", d => y(d.iso2) + y.bandwidth() / 2 + 4)
+    .attr("fill", "rgba(255,255,255,0.85)")
+    .style("font-size", "11px")
     .text(d => fmt(d[selectedMetric]));
 
   row.filter(d => topSet.has(d.iso2) || bottomSet.has(d.iso2))
     .append("text")
-    .attr("class","annotation-label")
+    .attr("class", "annotation-label")
     .attr("x", d => x(+d[selectedMetric]) + 58)
-    .attr("y", d => y(d.iso2) + y.bandwidth()/2 + 4)
-    .text(d => topSet.has(d.iso2) ? "Top 3" : "Bottom 3");
+    .attr("y", d => y(d.iso2) + y.bandwidth() / 2 + 4)
+    .text(d => topSet.has(d.iso2) ? "Top 3" : "3 más bajos");
 }
 
-// ---------- Scatter ----------
-function renderScatter(){
+// -----------------------------
+// Scatter: WASS vs contexto digital
+// -----------------------------
+function renderScatter() {
   const container = d3.select("#scatter");
   container.selectAll("*").remove();
 
   const w = 980, h = 520;
-  const margin = {top: 10, right: 20, bottom: 55, left: 90};
+  const margin = { top: 10, right: 20, bottom: 55, left: 90 };
 
   const svg = container.append("svg").attr("viewBox", `0 0 ${w} ${h}`);
 
@@ -473,43 +461,43 @@ function renderScatter(){
   svg.append("g")
     .attr("transform", `translate(0,${h - margin.bottom})`)
     .call(d3.axisBottom(x).ticks(6))
-    .call(g => g.selectAll("text").attr("fill","rgba(255,255,255,0.8)"))
-    .call(g => g.selectAll("path,line").attr("stroke","rgba(255,255,255,0.25)"));
+    .call(g => g.selectAll("text").attr("fill", "rgba(255,255,255,0.8)"))
+    .call(g => g.selectAll("path,line").attr("stroke", "rgba(255,255,255,0.25)"));
 
   svg.append("g")
     .attr("transform", `translate(${margin.left},0)`)
     .call(d3.axisLeft(y).ticks(6))
-    .call(g => g.selectAll("text").attr("fill","rgba(255,255,255,0.8)"))
-    .call(g => g.selectAll("path,line").attr("stroke","rgba(255,255,255,0.25)"));
+    .call(g => g.selectAll("text").attr("fill", "rgba(255,255,255,0.8)"))
+    .call(g => g.selectAll("path,line").attr("stroke", "rgba(255,255,255,0.25)"));
 
   svg.append("text")
-    .attr("x", w/2).attr("y", h - 18)
-    .attr("text-anchor","middle")
-    .attr("fill","rgba(255,255,255,0.75)")
-    .style("font-size","12px")
+    .attr("x", w / 2).attr("y", h - 18)
+    .attr("text-anchor", "middle")
+    .attr("fill", "rgba(255,255,255,0.75)")
+    .style("font-size", "12px")
     .text("WASS (más alto = más barreras web)");
 
   svg.append("text")
-    .attr("transform","rotate(-90)")
-    .attr("x", -h/2).attr("y", 26)
-    .attr("text-anchor","middle")
-    .attr("fill","rgba(255,255,255,0.75)")
-    .style("font-size","12px")
-    .text("Contexto digital (más alto = más capacidad)");
+    .attr("transform", "rotate(-90)")
+    .attr("x", -h / 2).attr("y", 26)
+    .attr("text-anchor", "middle")
+    .attr("fill", "rgba(255,255,255,0.75)")
+    .style("font-size", "12px")
+    .text("Contexto digital (más alto = mayor capacidad)");
 
   svg.append("g")
     .selectAll("circle")
     .data(data)
     .enter()
     .append("circle")
-    .attr("class","dot")
+    .attr("class", "dot")
     .attr("cx", d => x(+d.wass))
     .attr("cy", d => y(+d.digital_context))
     .attr("r", d => r(+d.visual_impairment_female))
     .attr("fill", d => mapColor(d[selectedMetric]))
     .attr("fill-opacity", 0.85)
     .attr("stroke", "rgba(0,0,0,0.35)")
-    .style("cursor","pointer")
+    .style("cursor", "pointer")
     .on("mousemove", (event, d) => {
       if (!pinnedIso2) showTooltip(event, d);
       setActive(pinnedIso2 ?? d.iso2);
@@ -519,7 +507,7 @@ function renderScatter(){
       setActive(pinnedIso2);
     })
     .on("click", (event, d) => {
-      if (pinnedIso2 === d.iso2){
+      if (pinnedIso2 === d.iso2) {
         clearPin();
       } else {
         pinCountry(d.iso2);
@@ -529,17 +517,19 @@ function renderScatter(){
     });
 }
 
-// ---------- Gender ratio ----------
-function renderGender(){
+// -----------------------------
+// Perspectiva de género (ratio mujeres/hombres)
+// -----------------------------
+function renderGender() {
   const container = d3.select("#gender");
   container.selectAll("*").remove();
 
   const w = 980, h = 420;
-  const margin = {top: 10, right: 20, bottom: 35, left: 95};
+  const margin = { top: 10, right: 20, bottom: 35, left: 95 };
 
   const sorted = [...data]
     .filter(d => isValidNumber(d.female_male_ratio))
-    .sort((a,b) => d3.descending(+a.female_male_ratio, +b.female_male_ratio));
+    .sort((a, b) => d3.descending(+a.female_male_ratio, +b.female_male_ratio));
 
   const svg = container.append("svg").attr("viewBox", `0 0 ${w} ${h}`);
 
@@ -555,15 +545,16 @@ function renderGender(){
   svg.append("g")
     .attr("transform", `translate(0,${h - margin.bottom})`)
     .call(d3.axisBottom(x).ticks(6))
-    .call(g => g.selectAll("text").attr("fill","rgba(255,255,255,0.8)"))
-    .call(g => g.selectAll("path,line").attr("stroke","rgba(255,255,255,0.25)"));
+    .call(g => g.selectAll("text").attr("fill", "rgba(255,255,255,0.8)"))
+    .call(g => g.selectAll("path,line").attr("stroke", "rgba(255,255,255,0.25)"));
 
   svg.append("g")
     .attr("transform", `translate(${margin.left},0)`)
     .call(d3.axisLeft(y))
-    .call(g => g.selectAll("text").attr("fill","rgba(255,255,255,0.8)"))
-    .call(g => g.selectAll("path,line").attr("stroke","rgba(255,255,255,0.25)"));
+    .call(g => g.selectAll("text").attr("fill", "rgba(255,255,255,0.8)"))
+    .call(g => g.selectAll("path,line").attr("stroke", "rgba(255,255,255,0.25)"));
 
+  // Línea de referencia en 1.0
   svg.append("line")
     .attr("x1", x(1.0)).attr("x2", x(1.0))
     .attr("y1", margin.top).attr("y2", h - margin.bottom)
@@ -575,8 +566,8 @@ function renderGender(){
     .data(sorted)
     .enter()
     .append("g")
-    .attr("class","genderbar")
-    .style("cursor","pointer")
+    .attr("class", "genderbar")
+    .style("cursor", "pointer")
     .on("mousemove", (event, d) => {
       if (!pinnedIso2) showTooltip(event, d);
       setActive(pinnedIso2 ?? d.iso2);
@@ -586,7 +577,7 @@ function renderGender(){
       setActive(pinnedIso2);
     })
     .on("click", (event, d) => {
-      if (pinnedIso2 === d.iso2){
+      if (pinnedIso2 === d.iso2) {
         clearPin();
       } else {
         pinCountry(d.iso2);
@@ -601,18 +592,20 @@ function renderGender(){
     .attr("width", d => Math.abs(x(+d.female_male_ratio) - x(1.0)))
     .attr("height", y.bandwidth())
     .attr("fill", "rgba(255,255,255,0.20)")
-    .attr("stroke","rgba(255,255,255,0.10)");
+    .attr("stroke", "rgba(255,255,255,0.10)");
 
   row.append("text")
     .attr("x", d => x(+d.female_male_ratio) + 6)
-    .attr("y", d => y(d.iso2) + y.bandwidth()/2 + 4)
-    .attr("fill","rgba(255,255,255,0.85)")
-    .style("font-size","11px")
+    .attr("y", d => y(d.iso2) + y.bandwidth() / 2 + 4)
+    .attr("fill", "rgba(255,255,255,0.85)")
+    .style("font-size", "11px")
     .text(d => (+d.female_male_ratio).toFixed(2));
 }
 
-// ---------- Master render ----------
-function renderAll(){
+// -----------------------------
+// Render maestro
+// -----------------------------
+function renderAll() {
   renderHelp();
   renderStory();
   renderKPIs();
@@ -626,3 +619,48 @@ function renderAll(){
 
   if (pinnedIso2) setActive(pinnedIso2);
 }
+
+// -----------------------------
+// Carga de datos e inicialización
+// -----------------------------
+Promise.all([
+  d3.csv("data/country_metrics_public.csv", d3.autoType),
+  d3.json("https://raw.githubusercontent.com/leakyMirror/map-of-europe/master/GeoJSON/europe.geojson")
+]).then(([csv, geo]) => {
+
+  data = csv.map(d => ({
+    ...d,
+    female_male_ratio:
+      isValidNumber(d.visual_impairment_male) && +d.visual_impairment_male > 0
+        ? (+d.visual_impairment_female / +d.visual_impairment_male)
+        : null
+  }));
+
+  byIso2 = new Map(data.map(d => [d.iso2, d]));
+
+  geoFeatures = geo.features;
+
+  initMap(geo);
+  renderAll();
+
+  metricSelect.on("change", () => {
+    selectedMetric = metricSelect.node().value;
+    renderAll();
+
+    if (pinnedIso2 && byIso2.has(pinnedIso2)) {
+      tooltip.html(tooltipHtml(byIso2.get(pinnedIso2))).style("opacity", 1);
+    }
+  });
+
+  clearBtn.on("click", () => clearPin());
+
+  hcToggle.on("change", () => {
+    highContrast = hcToggle.node().checked;
+    d3.select("body").classed("hc", highContrast);
+    renderAll();
+  });
+
+}).catch(err => {
+  console.error("Error cargando archivos:", err);
+  metricHelp.text("Error cargando datos. Revisa que exista data/country_metrics_public.csv en el repositorio.");
+});
