@@ -5,6 +5,7 @@ const metricHelp = d3.select("#metricHelp");
 const legendText = d3.select("#legendText");
 const clearBtn = d3.select("#clearSelection");
 const storyText = d3.select("#storyText");
+const hcToggle = d3.select("#hcToggle");
 
 const METRICS = {
   derviw: {
@@ -37,7 +38,8 @@ let byIso2 = new Map();
 let activeIso2 = null;
 let pinnedIso2 = null;
 
-let mapSvg, mapG, mapPath, mapColor, mapProjection, geoFeatures = [];
+let mapSvg, mapG, mapPath, mapColor, geoFeatures = [];
+let highContrast = false;
 
 // ---------- Helpers ----------
 const fmt = (x, digits=3) => {
@@ -67,6 +69,11 @@ function topBottom(n=3){
   const top = sorted.slice(0, n);
   const bottom = sorted.slice(-n).reverse();
   return { top, bottom, sorted };
+}
+
+function currentInterpolator(){
+  // Turbo es vistoso, Cividis es más robusto para daltonismo/contraste
+  return highContrast ? d3.interpolateCividis : d3.interpolateTurbo;
 }
 
 // ---------- Tooltip ----------
@@ -132,7 +139,6 @@ Promise.all([
   }));
 
   byIso2 = new Map(data.map(d => [d.iso2, d]));
-
   geoFeatures = geo.features;
 
   initMap(geo);
@@ -147,6 +153,12 @@ Promise.all([
   });
 
   clearBtn.on("click", () => clearPin());
+
+  hcToggle.on("change", () => {
+    highContrast = hcToggle.node().checked;
+    d3.select("body").classed("hc", highContrast);
+    renderAll();
+  });
 
 }).catch(err => {
   console.error("Error cargando archivos:", err);
@@ -226,8 +238,8 @@ function initMap(geo){
     .attr("width","100%")
     .attr("height","100%");
 
-  mapProjection = d3.geoMercator().fitSize([w,h], geo);
-  mapPath = d3.geoPath(mapProjection);
+  const projection = d3.geoMercator().fitSize([w,h], geo);
+  mapPath = d3.geoPath(projection);
 
   mapG = mapSvg.append("g");
 
@@ -279,10 +291,11 @@ function renderLegend(minV, maxV){
     .style("border", "1px solid rgba(255,255,255,0.12)")
     .style("border-radius", "6px");
 
+  const interp = currentInterpolator();
   const ctx = canvas.node().getContext("2d");
   for (let i=0; i<w; i++){
     const t = i/(w-1);
-    ctx.fillStyle = mapColor(minV + t*(maxV-minV));
+    ctx.fillStyle = interp(t);
     ctx.fillRect(i, 0, 1, h);
   }
 
@@ -295,7 +308,7 @@ function colorizeMap(){
 
   mapColor = d3.scaleSequential()
     .domain([minV, maxV])
-    .interpolator(d3.interpolateTurbo);
+    .interpolator(currentInterpolator());
 
   mapG.selectAll("path.country")
     .transition().duration(350)
@@ -310,16 +323,12 @@ function colorizeMap(){
 }
 
 function renderMapAnnotations(){
-  // Limpiar capa previa
   mapSvg.selectAll("g.annotations").remove();
 
   const { top, bottom } = topBottom(3);
   const ann = mapSvg.append("g").attr("class","annotations");
 
-  // Filtrar features UE-27 presentes en dataset
-  const featureByIso2 = new Map(
-    geoFeatures.map(f => [f.properties.ISO2, f])
-  );
+  const featureByIso2 = new Map(geoFeatures.map(f => [f.properties.ISO2, f]));
 
   function addGroup(items, labelPrefix){
     const points = items
@@ -367,7 +376,6 @@ function renderRanking(){
   const svg = container.append("svg").attr("viewBox", `0 0 ${w} ${h}`);
 
   const { sorted, top, bottom } = topBottom(27);
-
   const topSet = new Set(top.map(d => d.iso2));
   const bottomSet = new Set(bottom.map(d => d.iso2));
 
@@ -432,7 +440,6 @@ function renderRanking(){
     .style("font-size","11px")
     .text(d => fmt(d[selectedMetric]));
 
-  // Anotaciones Top/Bottom en ranking
   row.filter(d => topSet.has(d.iso2) || bottomSet.has(d.iso2))
     .append("text")
     .attr("class","annotation-label")
