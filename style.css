@@ -68,6 +68,19 @@ select{
   outline-offset: 2px;
 }
 
+/* Toggle */
+.toggle{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(255,255,255,0.06);
+}
+.toggle input{ transform: translateY(1px); }
+.toggle label{ color: rgba(255,255,255,0.85); cursor:pointer; }
+
 .metric-help{
   color: var(--muted);
   line-height: 1.55;
@@ -177,17 +190,27 @@ select{
 .dot.active{ stroke: rgba(255,255,255,0.92); stroke-width:2px; }
 .genderbar.active rect{ stroke: rgba(255,255,255,0.92); stroke-width:2px; }
 
-/* Estilo de anotaciones */
+/* Anotaciones */
 .annotation-label{
   font-size: 11px;
-  fill: rgba(255,255,255,0.85);
+  fill: rgba(255,255,255,0.90);
   paint-order: stroke;
-  stroke: rgba(0,0,0,0.55);
+  stroke: rgba(0,0,0,0.60);
   stroke-width: 3px;
   stroke-linejoin: round;
 }
 .annotation-dot{
-  stroke: rgba(255,255,255,0.85);
+  stroke: rgba(255,255,255,0.90);
   stroke-width: 1.4px;
   fill: rgba(255,255,255,0.12);
+}
+
+/* Modo alto contraste (aplicado al body con clase .hc) */
+body.hc{
+  --bg:#070a10;
+  --panel:#0f1623;
+  --text:#ffffff;
+  --muted:#cbd5e1;
+  --border: rgba(255,255,255,0.22);
+  --border2: rgba(255,255,255,0.30);
 }
