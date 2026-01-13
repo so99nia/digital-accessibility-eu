@@ -1,121 +1,89 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="utf-8" />
+  <title>PRA2 · Visualización de Datos</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Accesibilidad digital en la UE: riesgo e inclusión</title>
+  <meta name="description" content="PRA2 Visualización de Datos · Accesibilidad digital en la UE · UOC" />
   <link rel="stylesheet" href="style.css" />
-  <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
 
 <body>
+
   <header class="hero">
-    <div class="container">
-      <h1>Accesibilidad digital en la Unión Europea: riesgo e inclusión</h1>
-      <p class="subtitle">
-        Comparativa a nivel país (UE-27) que combina barreras de accesibilidad web (WebAIM),
-        contexto digital (DESI) y el <strong>número estimado de personas con pérdida de visión</strong>,
-        desagregado por género (Vision Atlas).
-      </p>
-
-      <div class="controls" aria-label="Controles de visualización">
-        <div class="control">
-          <label for="metric">Métrica</label>
-          <select id="metric">
-            <option value="derviw" selected>DERVIW · Índice de riesgo</option>
-            <option value="idfdv">IDFDV · Índice de inclusión</option>
-            <option value="wass">WASS · Severidad de barreras web</option>
-          </select>
-        </div>
-
-        <button id="clearSelection" class="btn" type="button">
-          Limpiar selección
-        </button>
-
-        <div class="toggle">
-          <input type="checkbox" id="hcToggle" />
-          <label for="hcToggle">Modo alto contraste</label>
-        </div>
-      </div>
-
-      <div id="metricHelp" class="metric-help"></div>
-
-      <div class="story">
-        <div class="story-title">Conclusión rápida</div>
-        <div id="storyText" class="story-text"></div>
-      </div>
-
-      <div class="kpis" id="kpis"></div>
-
-      <p class="note">
-        Consejo: pasa el ratón por un país para ver detalles. Haz clic para fijarlo y compararlo con calma.
-      </p>
-    </div>
+    <h1>PRA2 · Visualización de Datos</h1>
+    <p class="subtitle">
+      Máster Universitario en Ciencia de Datos · UOC · 2025–2026
+    </p>
+    <p class="author">
+      Sònia Ribera Coma
+    </p>
   </header>
 
   <main class="container">
 
-    <section class="panel">
-      <h2>1) Mapa: distribución por país</h2>
-      <p class="desc">
-        El mapa permite identificar de un vistazo dónde se concentran los valores más altos y más bajos
-        de la métrica seleccionada dentro de la UE-27.
-      </p>
-      <div id="map" class="viz"></div>
-      <div id="legend" class="legend"></div>
-      <div id="legendText" class="legend-text"></div>
-    </section>
-
-    <section class="panel">
-      <h2>2) Ranking: comparativa ordenada</h2>
-      <p class="desc">
-        Los países se ordenan de mayor a menor valor para identificar patrones, países destacados
-        y los 3 valores más altos y más bajos.
-      </p>
-      <div id="ranking" class="viz viz-short"></div>
-    </section>
-
-    <section class="panel">
-      <h2>3) Relación entre barreras web y contexto digital</h2>
-      <p class="desc">
-        Este gráfico muestra la relación entre <strong>WASS</strong> (más alto = más barreras web)
-        y el <strong>contexto digital</strong> (más alto = mayor capacidad).
-        El tamaño de la burbuja representa el <strong>número estimado de mujeres con pérdida de visión</strong>.
-      </p>
-      <div id="scatter" class="viz"></div>
-    </section>
-
-    <section class="panel">
-      <h2>4) Perspectiva de género</h2>
-      <p class="desc">
-        Se visualiza el ratio <strong>mujeres / hombres</strong> del número estimado de personas con pérdida de visión.
-        Valores superiores a 1 indican una mayor afectación relativa en mujeres.
-      </p>
-      <div id="gender" class="viz viz-short"></div>
-    </section>
-
-    <section class="panel">
-      <h2>Metodología y limitaciones</h2>
-      <ul class="desc">
-        <li><strong>WASS</strong>: indicador compuesto de severidad de barreras web (errores y contraste), normalizado.</li>
-        <li><strong>Contexto digital</strong>: proxy basado en DESI (especialistas TIC), normalizado.</li>
-        <li><strong>IDFDV</strong>: índice de inclusión que combina accesibilidad y contexto digital, ajustado por necesidad.</li>
-        <li><strong>DERVIW</strong>: índice de riesgo compuesto, reescalado entre 0 y 1 para comparación relativa.</li>
-        <li>Los resultados son <strong>comparativos dentro de la UE-27</strong> y no constituyen auditorías absolutas.</li>
-      </ul>
-    </section>
-
-    <footer class="footer">
+    <section class="card">
+      <h2>Accesibilidad digital y discapacidad visual en la UE</h2>
       <p>
-        Proyecto de la asignatura <strong>Visualización de datos</strong> ·
-        Máster Universitario en Ciencia de Datos (UOC) · 2026  
-        <br />
-        Autora: Sònia Ribera Coma
+        Esta visualización analiza la accesibilidad digital en la Unión Europea,
+        poniendo el foco en las personas con discapacidad visual e incorporando
+        una perspectiva de género.
       </p>
-    </footer>
+      <p>
+        El objetivo es explorar cómo las barreras de accesibilidad web, el contexto
+        tecnológico y la necesidad real de la población se relacionan entre sí a
+        nivel de país.
+      </p>
+    </section>
+
+    <!-- CONTENEDOR DE LA VISUALIZACIÓN -->
+    <section class="card">
+      <h2>Exploración interactiva</h2>
+
+      <!-- Aquí NO se toca nada del JS -->
+      <div id="visualization"></div>
+    </section>
+
+    <!-- ACCESO ABIERTO -->
+    <section class="card" id="acceso-abierto">
+      <h2>Acceso abierto</h2>
+      <p>
+        Esta visualización está publicada en acceso abierto y no requiere registro.
+        El código fuente, la licencia de código abierto y el conjunto de datos final
+        están disponibles públicamente.
+      </p>
+
+      <div class="btn-row">
+        <a class="btn"
+           href="https://github.com/so95nia/pra2-visualizacion-soniariberacoma"
+           target="_blank" rel="noopener">
+          Repositorio (código fuente)
+        </a>
+
+        <a class="btn"
+           href="./data/country_metrics_public.csv"
+           download>
+          Descargar dataset final (CSV)
+        </a>
+
+        <a class="btn btn-secondary"
+           href="https://github.com/so95nia/pra2-visualizacion-soniariberacoma/blob/main/LICENSE"
+           target="_blank" rel="noopener">
+          Licencia MIT
+        </a>
+      </div>
+    </section>
+
   </main>
 
-  <div id="tooltip" class="tooltip"></div>
+  <footer class="footer">
+    <p>
+      PRA2 · Visualización de Datos · Máster en Ciencia de Datos · UOC
+    </p>
+  </footer>
+
+  <!-- TU JS ORIGINAL, SIN TOCAR -->
   <script src="script.js"></script>
+
 </body>
 </html>
