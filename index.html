@@ -2,46 +2,78 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <title>PRA2 · Visualización de Datos</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>PRA2 · Visualización de Datos</title>
   <meta name="description" content="PRA2 Visualización de Datos · Accesibilidad digital en la UE · UOC" />
+
   <link rel="stylesheet" href="style.css" />
+
+  <!-- IMPRESCINDIBLE: cargar D3 si tu script.js lo usa -->
+  <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
 
 <body>
-
   <header class="hero">
-    <h1>PRA2 · Visualización de Datos</h1>
-    <p class="subtitle">
-      Máster Universitario en Ciencia de Datos · UOC · 2025–2026
-    </p>
-    <p class="author">
-      Sònia Ribera Coma
-    </p>
+    <div class="container">
+      <h1>Accesibilidad digital en la Unión Europea: riesgo e inclusión</h1>
+      <p class="subtitle">
+        PRA2 · Visualización de Datos · Máster Universitario en Ciencia de Datos (UOC) · 2025–2026
+      </p>
+      <p class="subtitle">
+        Sònia Ribera Coma
+      </p>
+    </div>
   </header>
 
   <main class="container">
 
+    <!-- Intro breve -->
     <section class="card">
-      <h2>Accesibilidad digital y discapacidad visual en la UE</h2>
+      <h2>Descripción</h2>
       <p>
-        Esta visualización analiza la accesibilidad digital en la Unión Europea,
-        poniendo el foco en las personas con discapacidad visual e incorporando
-        una perspectiva de género.
-      </p>
-      <p>
-        El objetivo es explorar cómo las barreras de accesibilidad web, el contexto
-        tecnológico y la necesidad real de la población se relacionan entre sí a
-        nivel de país.
+        Visualización interactiva comparativa a nivel país (UE-27) que combina barreras de accesibilidad web (WebAIM),
+        contexto digital (DESI) y necesidad real vinculada a pérdida de visión (Vision Atlas), incorporando una perspectiva de género.
       </p>
     </section>
 
-    <!-- CONTENEDOR DE LA VISUALIZACIÓN -->
+    <!-- CONTENEDOR PRINCIPAL DE LA VISUALIZACIÓN -->
     <section class="card">
       <h2>Exploración interactiva</h2>
 
-      <!-- Aquí NO se toca nada del JS -->
+      <!--
+        Mantengo un contenedor genérico. Si tu script.js usa IDs concretos (map, ranking, scatter, gender),
+        incluyo también esos contenedores abajo.
+      -->
       <div id="visualization"></div>
+
+      <!-- Contenedores típicos por vista (no molestan si tu JS no los usa) -->
+      <div class="grid-2">
+        <div class="viz-block">
+          <h3>Mapa</h3>
+          <div id="map"></div>
+        </div>
+
+        <div class="viz-block">
+          <h3>Ranking</h3>
+          <div id="ranking"></div>
+        </div>
+
+        <div class="viz-block">
+          <h3>Dispersión</h3>
+          <div id="scatter"></div>
+        </div>
+
+        <div class="viz-block">
+          <h3>Perspectiva de género</h3>
+          <div id="gender"></div>
+        </div>
+      </div>
+
+      <!-- Si tu UI tiene botón de limpiar, lo dejo preparado -->
+      <div class="actions">
+        <button id="clearSelection" type="button">Limpiar selección</button>
+      </div>
     </section>
 
     <!-- ACCESO ABIERTO -->
@@ -49,25 +81,27 @@
       <h2>Acceso abierto</h2>
       <p>
         Esta visualización está publicada en acceso abierto y no requiere registro.
-        El código fuente, la licencia de código abierto y el conjunto de datos final
-        están disponibles públicamente.
+        El código fuente, la licencia de código abierto y el dataset final están disponibles públicamente.
       </p>
 
       <div class="btn-row">
+        <!-- CAMBIA SOLO SI TU REPO NO SE LLAMA ASÍ -->
         <a class="btn"
-           href="https://github.com/so95nia/pra2-visualizacion-soniariberacoma"
+           href="https://github.com/so99nia/digital-accessibility-eu"
            target="_blank" rel="noopener">
           Repositorio (código fuente)
         </a>
 
+        <!-- Asegúrate de que existe este archivo en /data -->
         <a class="btn"
            href="./data/country_metrics_public.csv"
            download>
           Descargar dataset final (CSV)
         </a>
 
+        <!-- CAMBIA SOLO SI TU REPO NO SE LLAMA ASÍ -->
         <a class="btn btn-secondary"
-           href="https://github.com/so95nia/pra2-visualizacion-soniariberacoma/blob/main/LICENSE"
+           href="https://github.com/so99nia/digital-accessibility-eu/blob/main/LICENSE"
            target="_blank" rel="noopener">
           Licencia MIT
         </a>
@@ -77,13 +111,12 @@
   </main>
 
   <footer class="footer">
-    <p>
-      PRA2 · Visualización de Datos · Máster en Ciencia de Datos · UOC
-    </p>
+    <div class="container">
+      <p>PRA2 · Visualización de Datos · UOC · 2025–2026</p>
+    </div>
   </footer>
 
-  <!-- TU JS ORIGINAL, SIN TOCAR -->
+  <!-- Tu JS (no lo tocamos) -->
   <script src="script.js"></script>
-
 </body>
 </html>
