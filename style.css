@@ -1,102 +1,245 @@
-:root{
-  --bg: #ffffff;
-  --text: #111111;
-  --muted: #555555;
-  --border: rgba(0,0,0,.08);
-  --card-bg: rgba(0,0,0,.02);
+/* === Base (tu CSS que funcionaba) === */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #0b0f17;
+  color: #e7eefc;
 }
 
-*{
-  box-sizing: border-box;
+.container {
+  max-width: 1100px;
+  margin: auto;
+  padding: 20px;
 }
 
-body{
-  margin:0;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-               Roboto, Helvetica, Arial, sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  line-height:1.55;
+.hero {
+  border-bottom: 1px solid rgba(255,255,255,0.15);
+  padding-bottom: 10px;
 }
 
-.hero{
-  padding:48px 20px 32px;
-  text-align:center;
+.controls {
+  margin-top: 10px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
-.hero h1{
-  margin:0;
-  font-size:2rem;
-  font-weight:600;
+select {
+  background: #121a27;
+  color: #e7eefc;
+  border: 1px solid rgba(255,255,255,0.15);
+  padding: 8px 10px;
+  border-radius: 8px;
 }
 
+.panel {
+  background: #121a27;
+  padding: 20px;
+  margin: 20px 0;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.10);
+}
+
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 900px) {
+  .grid2 { grid-template-columns: 1fr; }
+}
+
+.viz {
+  height: 520px;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px;
+  background: rgba(0,0,0,0.18);
+}
+
+.viz-short{
+  height: 360px;
+}
+
+.tooltip {
+  position: fixed;
+  pointer-events: none;
+  opacity: 0;
+  background: rgba(15, 20, 30, 0.95);
+  color: #e7eefc;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.15);
+  font-size: 13px;
+  max-width: 280px;
+  z-index: 9999;
+}
+
+/* === Texto auxiliar y microcomponentes (compatibles con tu HTML) === */
 .subtitle{
-  margin-top:8px;
-  color: var(--muted);
+  margin-top: 8px;
+  color: rgba(231,238,252,0.80);
 }
 
-.author{
-  margin-top:4px;
-  font-size:.95rem;
-  color: var(--muted);
+.note{
+  margin-top: 10px;
+  color: rgba(231,238,252,0.72);
 }
 
-.container{
-  max-width:1100px;
-  margin:0 auto;
-  padding:0 16px 40px;
+.metric-help{
+  margin-top: 10px;
+  color: rgba(231,238,252,0.78);
+  line-height: 1.55;
 }
 
-.card{
-  margin-top:28px;
-  padding:20px 22px;
-  background: var(--card-bg);
-  border:1px solid var(--border);
-  border-radius:14px;
+/* Bloque “Conclusión rápida” */
+.story{
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(0,0,0,0.12);
+}
+.story-title{
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.story-text{
+  color: rgba(231,238,252,0.80);
 }
 
-.card h2{
-  margin-top:0;
-  font-size:1.25rem;
+/* KPIs (si tu JS los pinta) */
+.kpis{
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+@media (max-width: 900px) {
+  .kpis{ grid-template-columns: 1fr; }
+}
+.kpi{
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: rgba(0,0,0,0.10);
+}
+.kpi .label{
+  font-size: 12px;
+  color: rgba(231,238,252,0.72);
+}
+.kpi .value{
+  margin-top: 4px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #e7eefc;
 }
 
-#visualization{
-  margin-top:16px;
-  min-height:420px;
+/* Leyenda */
+.legend{
+  margin-top: 10px;
+}
+.legend-text{
+  margin-top: 6px;
+  color: rgba(231,238,252,0.75);
+  font-size: 13px;
 }
 
-/* BOTONES */
-
-.btn-row{
-  display:flex;
-  flex-wrap:wrap;
-  gap:12px;
-  margin-top:16px;
-}
-
+/* === Botones (Limpiar selección + Acceso abierto) === */
 .btn{
-  display:inline-block;
-  padding:10px 14px;
-  border-radius:10px;
-  text-decoration:none;
-  border:1px solid var(--border);
-  background:#fff;
-  color: var(--text);
-  font-size:.95rem;
+  display: inline-block;
+  background: #0f1623;
+  color: #e7eefc;
+  border: 1px solid rgba(255,255,255,0.15);
+  padding: 8px 12px;
+  border-radius: 10px;
+  text-decoration: none;
+  cursor: pointer;
 }
-
 .btn:hover{
-  background: rgba(0,0,0,.04);
+  background: #121a27;
 }
-
 .btn-secondary{
-  background: rgba(0,0,0,.02);
+  background: rgba(255,255,255,0.06);
+}
+.btn-row{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
 }
 
+/* === Toggle (alto contraste) === */
+.toggle{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  padding: 7px 10px;
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 10px;
+  background: rgba(0,0,0,0.14);
+}
+.toggle input{ transform: translateY(1px); }
+.toggle label{
+  color: rgba(231,238,252,0.85);
+  cursor:pointer;
+  user-select:none;
+}
+
+/* === Estados activos (si tu JS añade clases) === */
+.country.active{ stroke: rgba(231,238,252,0.95); stroke-width: 2px; }
+.dot.active{ stroke: rgba(231,238,252,0.92); stroke-width: 2px; }
+.genderbar.active rect{ stroke: rgba(231,238,252,0.92); stroke-width: 2px; }
+
+/* === Anotaciones (Top/Bottom, etiquetas) === */
+.annotation-label{
+  font-size: 11px;
+  fill: rgba(231,238,252,0.90);
+  paint-order: stroke;
+  stroke: rgba(0,0,0,0.60);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
+.annotation-dot{
+  stroke: rgba(231,238,252,0.90);
+  stroke-width: 1.4px;
+  fill: rgba(231,238,252,0.10);
+}
+
+/* === Modo alto contraste (aplicado a body.hc) === */
+body.hc{
+  background: #070a10;
+  color: #ffffff;
+}
+body.hc .hero{
+  border-bottom-color: rgba(255,255,255,0.22);
+}
+body.hc .panel{
+  background: #0f1623;
+  border-color: rgba(255,255,255,0.22);
+}
+body.hc select{
+  background: #0f1623;
+  border-color: rgba(255,255,255,0.30);
+  color: #ffffff;
+}
+body.hc .viz{
+  border-color: rgba(255,255,255,0.22);
+  background: rgba(0,0,0,0.25);
+}
+body.hc .tooltip{
+  border-color: rgba(255,255,255,0.22);
+}
+body.hc .btn{
+  border-color: rgba(255,255,255,0.30);
+}
+
+/* === Footer === */
 .footer{
-  padding:24px 16px;
-  text-align:center;
-  font-size:.85rem;
-  color: var(--muted);
-  border-top:1px solid var(--border);
+  margin-top: 16px;
+  padding: 18px 0 10px;
+  text-align: center;
+  color: rgba(231,238,252,0.70);
+  border-top: 1px solid rgba(255,255,255,0.12);
 }
