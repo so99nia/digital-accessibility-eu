@@ -1,15 +1,11 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-
   <title>PRA2 · Visualización de Datos</title>
-  <meta name="description" content="PRA2 Visualización de Datos · Accesibilidad digital en la UE · UOC" />
-
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="PRA2 · Visualización de Datos · Accesibilidad digital en la UE · UOC" />
   <link rel="stylesheet" href="style.css" />
-
-  <!-- IMPRESCINDIBLE: cargar D3 si tu script.js lo usa -->
   <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
 
@@ -17,89 +13,124 @@
   <header class="hero">
     <div class="container">
       <h1>Accesibilidad digital en la Unión Europea: riesgo e inclusión</h1>
+
       <p class="subtitle">
-        PRA2 · Visualización de Datos · Máster Universitario en Ciencia de Datos (UOC) · 2025–2026
+        Comparativa a nivel país (UE-27) que combina barreras de accesibilidad web (WebAIM),
+        contexto digital (DESI) y el <strong>número estimado de personas con pérdida de visión</strong>,
+        desagregado por género (Vision Atlas).
       </p>
-      <p class="subtitle">
-        Sònia Ribera Coma
+
+      <div class="controls" aria-label="Controles de visualización">
+        <div class="control">
+          <label for="metric">Métrica</label>
+          <select id="metric">
+            <option value="derviw" selected>DERVIW · Índice de riesgo</option>
+            <option value="idfdv">IDFDV · Índice de inclusión</option>
+            <option value="wass">WASS · Severidad de barreras web</option>
+          </select>
+        </div>
+
+        <button id="clearSelection" class="btn" type="button">
+          Limpiar selección
+        </button>
+
+        <div class="toggle">
+          <input type="checkbox" id="hcToggle" />
+          <label for="hcToggle">Modo alto contraste</label>
+        </div>
+      </div>
+
+      <div id="metricHelp" class="metric-help"></div>
+
+      <div class="story">
+        <div class="story-title">Conclusión rápida</div>
+        <div id="storyText" class="story-text"></div>
+      </div>
+
+      <div class="kpis" id="kpis"></div>
+
+      <p class="note">
+        Consejo: pasa el ratón por un país para ver detalles. Haz clic para fijarlo y compararlo con calma.
       </p>
     </div>
   </header>
 
   <main class="container">
+    <section class="panel">
+      <h2>1) Mapa: distribución por país</h2>
+      <p class="desc">
+        El mapa permite identificar de un vistazo dónde se concentran los valores más altos y más bajos
+        de la métrica seleccionada dentro de la UE-27.
+      </p>
+      <div id="map" class="viz"></div>
+      <div id="legend" class="legend"></div>
+      <div id="legendText" class="legend-text"></div>
+    </section>
 
-    <!-- Intro breve -->
-    <section class="card">
-      <h2>Descripción</h2>
-      <p>
-        Visualización interactiva comparativa a nivel país (UE-27) que combina barreras de accesibilidad web (WebAIM),
-        contexto digital (DESI) y necesidad real vinculada a pérdida de visión (Vision Atlas), incorporando una perspectiva de género.
+    <section class="panel">
+      <h2>2) Ranking: comparativa ordenada</h2>
+      <p class="desc">
+        Los países se ordenan de mayor a menor valor para identificar patrones, países destacados
+        y los 3 valores más altos y más bajos.
+      </p>
+      <div id="ranking" class="viz viz-short"></div>
+    </section>
+
+    <section class="panel">
+      <h2>3) Relación entre barreras web y contexto digital</h2>
+      <p class="desc">
+        Este gráfico muestra la relación entre <strong>WASS</strong> (más alto = más barreras web)
+        y el <strong>contexto digital</strong> (más alto = mayor capacidad).
+        El tamaño de la burbuja representa el <strong>número estimado de mujeres con pérdida de visión</strong>.
+      </p>
+      <div id="scatter" class="viz"></div>
+    </section>
+
+    <section class="panel">
+      <h2>4) Perspectiva de género</h2>
+      <p class="desc">
+        Se visualiza el ratio <strong>mujeres / hombres</strong> del número estimado de personas con pérdida de visión.
+        Valores superiores a 1 indican una mayor afectación relativa en mujeres.
+      </p>
+      <div id="gender" class="viz viz-short"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Metodología y limitaciones</h2>
+      <ul class="desc">
+        <li><strong>WASS</strong>: indicador compuesto de severidad de barreras web (errores y contraste), normalizado.</li>
+        <li><strong>Contexto digital</strong>: proxy basado en DESI (especialistas TIC), normalizado.</li>
+        <li><strong>IDFDV</strong>: índice de inclusión que combina accesibilidad y contexto digital, ajustado por necesidad.</li>
+        <li><strong>DERVIW</strong>: índice de riesgo compuesto, reescalado entre 0 y 1 para comparación relativa.</li>
+        <li>Los resultados son <strong>comparativos dentro de la UE-27</strong> y no constituyen auditorías absolutas.</li>
+      </ul>
+      <p class="desc subtle">
+        Fuentes: WebAIM · DESI (Comisión Europea) · Vision Atlas. Publicación: GitHub Pages.
       </p>
     </section>
 
-    <!-- CONTENEDOR PRINCIPAL DE LA VISUALIZACIÓN -->
-    <section class="card">
-      <h2>Exploración interactiva</h2>
-
-      <!--
-        Mantengo un contenedor genérico. Si tu script.js usa IDs concretos (map, ranking, scatter, gender),
-        incluyo también esos contenedores abajo.
-      -->
-      <div id="visualization"></div>
-
-      <!-- Contenedores típicos por vista (no molestan si tu JS no los usa) -->
-      <div class="grid-2">
-        <div class="viz-block">
-          <h3>Mapa</h3>
-          <div id="map"></div>
-        </div>
-
-        <div class="viz-block">
-          <h3>Ranking</h3>
-          <div id="ranking"></div>
-        </div>
-
-        <div class="viz-block">
-          <h3>Dispersión</h3>
-          <div id="scatter"></div>
-        </div>
-
-        <div class="viz-block">
-          <h3>Perspectiva de género</h3>
-          <div id="gender"></div>
-        </div>
-      </div>
-
-      <!-- Si tu UI tiene botón de limpiar, lo dejo preparado -->
-      <div class="actions">
-        <button id="clearSelection" type="button">Limpiar selección</button>
-      </div>
-    </section>
-
-    <!-- ACCESO ABIERTO -->
-    <section class="card" id="acceso-abierto">
+    <!-- NUEVO: Acceso abierto -->
+    <section class="panel" id="acceso-abierto">
       <h2>Acceso abierto</h2>
-      <p>
-        Esta visualización está publicada en acceso abierto y no requiere registro.
-        El código fuente, la licencia de código abierto y el dataset final están disponibles públicamente.
+      <p class="desc">
+        La visualización está publicada públicamente y no requiere registro.
+        El repositorio incluye el código fuente, la licencia de código abierto y el dataset final integrado.
       </p>
 
       <div class="btn-row">
-        <!-- CAMBIA SOLO SI TU REPO NO SE LLAMA ASÍ -->
         <a class="btn"
            href="https://github.com/so99nia/digital-accessibility-eu"
            target="_blank" rel="noopener">
           Repositorio (código fuente)
         </a>
 
-        <!-- Asegúrate de que existe este archivo en /data -->
+        <!-- Cambia el nombre si tu CSV final se llama distinto -->
         <a class="btn"
            href="./data/country_metrics_public.csv"
            download>
           Descargar dataset final (CSV)
         </a>
 
-        <!-- CAMBIA SOLO SI TU REPO NO SE LLAMA ASÍ -->
         <a class="btn btn-secondary"
            href="https://github.com/so99nia/digital-accessibility-eu/blob/main/LICENSE"
            target="_blank" rel="noopener">
@@ -108,15 +139,17 @@
       </div>
     </section>
 
+    <footer class="footer">
+      <p>
+        Proyecto de la asignatura <strong>Visualización de datos</strong> ·
+        Máster Universitario en Ciencia de Datos (UOC) · 2025–2026
+        <br />
+        Autora: Sònia Ribera Coma
+      </p>
+    </footer>
   </main>
 
-  <footer class="footer">
-    <div class="container">
-      <p>PRA2 · Visualización de Datos · UOC · 2025–2026</p>
-    </div>
-  </footer>
-
-  <!-- Tu JS (no lo tocamos) -->
+  <div id="tooltip" class="tooltip"></div>
   <script src="script.js"></script>
 </body>
 </html>
